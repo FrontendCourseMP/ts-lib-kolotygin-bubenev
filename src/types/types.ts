@@ -1,48 +1,39 @@
 // ==================== БАЗОВЫЕ ТИПЫ ====================
 
-/** Элемент формы для валидации */
-export type FormField = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+/** Элемент формы для валидации с поддержкой min/maxLength */
+export type FormFieldWithLength = HTMLInputElement | HTMLTextAreaElement;
+
+/** Все элементы формы для валидации */
+export type FormField = FormFieldWithLength | HTMLSelectElement;
 
 /** Простое правило валидации */
-export type ValidationRule = {
+export interface ValidationRule {
   /** Проверка поля (возвращает true если валидно, false или строку с ошибкой если нет) */
-  test: (value: string, field: FormField) => boolean | string;
-  /** Сообщение об ошибке */
-  message: string;
-};
+  test: (value: string, field: FormField, message: string) => boolean | string;
+}
 
 /** Правила для одного поля */
-export type FieldRules = {
-  [fieldName: string]: ValidationRule[];
-};
+export type FieldRules = Record<string, ValidationRule[]>;
 
 /** Сообщения об ошибках */
-export type ErrorMessages = {
-  [fieldName: string]: string[];
-};
+export type ErrorMessages = Record<string, string[]>;
 
 /** Результат валидации одного поля */
-export type FieldResult = {
+export interface FieldResult {
   isValid: boolean;
   errors: string[];
   field: FormField;
-  // Не используем browserValidity потому что:
-  // 1. Не во всех браузерах одинаково
-  // 2. Хотим свою логику валидации
-  // 3. Нужны кастомные сообщения
-};
+}
 
 /** Результат валидации всей формы */
-export type FormResult = {
+export interface FormResult {
   isValid: boolean;
-  fields: {
-    [fieldName: string]: FieldResult;
-  };
+  fields: Record<string, FieldResult>;
   errors: string[];
-};
+}
 
 /** Конфигурация валидатора */
-export type ValidatorConfig = {
+export interface ValidatorConfig {
   /** Элемент формы */
   form: HTMLFormElement;
   /** Правила для полей */
@@ -53,21 +44,21 @@ export type ValidatorConfig = {
     onBlur?: boolean;
     onSubmit?: boolean;
   };
-};
+}
 
 // ==================== ВСТРОЕННЫЕ ПРАВИЛА ====================
 
 /** Предопределенные правила (как в Just-Validate) */
 export type BuiltInRule = 
-  | { type: 'required', message?: string }
-  | { type: 'email', message?: string }
-  | { type: 'minLength', value: number, message?: string }
-  | { type: 'maxLength', value: number, message?: string }
-  | { type: 'number', message?: string }
-  | { type: 'url', message?: string }
-  | { type: 'tel', message?: string }
-  | { type: 'match', fieldToMatch: string, message?: string }
-  | { type: 'custom', validator: (value: string) => boolean | string, message?: string };
+  | { type: 'required'; message?: string }
+  | { type: 'email'; message?: string }
+  | { type: 'minLength'; value: number; message?: string }
+  | { type: 'maxLength'; value: number; message?: string }
+  | { type: 'number'; message?: string }
+  | { type: 'url'; message?: string }
+  | { type: 'tel'; message?: string }
+  | { type: 'match'; fieldToMatch: string; message?: string }
+  | { type: 'custom'; validator: (value: string) => boolean | string; message?: string };
 
 // ==================== ИНТЕРФЕЙС ВАЛИДАТОРА ====================
 
@@ -101,7 +92,7 @@ export interface SimpleValidator {
 // ==================== КЛАСС ВАЛИДАТОРА ====================
 
 /** Основной класс валидатора */
-declare class FormValidator implements SimpleValidator {
+export declare class FormValidator implements SimpleValidator {
   constructor(config: ValidatorConfig);
   
   validate(): FormResult;
@@ -114,4 +105,5 @@ declare class FormValidator implements SimpleValidator {
   destroy(): void;
 }
 
-export default FormValidator;
+// Экспорт по умолчанию для совместимости
+export type { FormValidator as default };
